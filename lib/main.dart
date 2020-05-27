@@ -36,7 +36,7 @@ class RandomWordsState extends State<RandomWords>{
           IconButton(icon: Icon(Icons.list), onPressed: _onClickSaved)
         ],
       ),
-      body: _buildSuggestions(false),
+      body: _buildList((i) => _buildRow(i, true)),
     );
   }
 
@@ -69,17 +69,6 @@ class RandomWordsState extends State<RandomWords>{
     );
   }
 
-  Widget _buildSuggestions(bool heartClickable) {
-    return ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemBuilder: (context, i) {
-          if (i.isOdd) return Divider();
-
-          final index = i ~/ 2;
-          return _buildRow(index, heartClickable);
-    });
-  }
-
   Widget _buildRow(int i, heartClickable) {
     if (_suggestions.length <= i){
       _suggestions.addAll(generateWordPairs().take(_suggestionIncrement));
@@ -108,6 +97,28 @@ class RandomWordsState extends State<RandomWords>{
     else
       _savedWordPairs.add(wordPair);
   }
-
-  String _randomWordPair() => WordPair.random().asPascalCase;
 }
+
+class InifiniteListView extends StatelessWidget {
+  Widget Function(int i) _itemBuilder;
+
+  InfiniteListView(Widget Function(int i) itemBuilder) {
+    _itemBuilder = itemBuilder;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return _buildList(_itemBuilder);
+  }
+
+  static Widget _buildList(Widget Function(int i) itemBuilder) {
+    return ListView.builder (
+        padding: const EdgeInsets.all(16),
+        itemBuilder: (context, i) {
+          if (i.isOdd) return Divider();
+          final index = i ~/ 2;
+          return itemBuilder(index);
+        });
+  }
+}
+
