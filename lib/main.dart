@@ -17,8 +17,46 @@ class MyApp extends StatelessWidget {
 }
 
 class RandomWords extends StatefulWidget {
+
   @override
   RandomWordsState createState() => RandomWordsState();
+}
+
+class FavoritesView extends StatelessWidget {
+  final Set<WordPair> _wordPairs;
+  final TextStyle _font;
+
+  FavoritesView(this._wordPairs, this._font);
+
+  @override
+  Widget build(BuildContext context) {
+    final Iterable<ListTile> tiles = _wordPairs.map(
+            (WordPair pair)  => ListTile(
+          title: Text(
+            pair.asPascalCase,
+            style: _font,
+          ),
+        ));
+    final List<Widget> divided = ListTile
+        .divideTiles(
+      context: context,
+      tiles: tiles,
+    ).toList();
+
+    return Scaffold(
+        appBar: AppBar(
+          title: Text('Saved Suggestions'),
+        ),
+        body: WordPairListView(_wordPairs.iterator.List)(, (i, wordPair) =>
+            ListTile(
+              title: Text(
+                  wordPair.asPascalCase,
+                  style: font
+              )
+            ))
+    );
+  }
+
 }
 
 class RandomWordsState extends State<RandomWords>{
@@ -36,7 +74,7 @@ class RandomWordsState extends State<RandomWords>{
           IconButton(icon: Icon(Icons.list), onPressed: _onClickSaved)
         ],
       ),
-      body: InfiniteListView((i) => _buildRow(i, true)),
+      body: WordPairListView(_suggestions, _buildRow),
     );
   }
 
@@ -44,50 +82,29 @@ class RandomWordsState extends State<RandomWords>{
     log('On Click!');
     Navigator.of(context).push(
         MaterialPageRoute<void>(   // Add 20 lines from here...
-          builder: (BuildContext context) {
-            final Iterable<ListTile> tiles = _savedWordPairs.map(
-                  (WordPair pair)  => ListTile(
-                  title: Text(
-                    pair.asPascalCase,
-                    style: _biggerFont,
-                  ),
-                ));
-            final List<Widget> divided = ListTile
-                .divideTiles(
-              context: context,
-              tiles: tiles,
-            ).toList();
-
-            return Scaffold(
-              appBar: AppBar(
-                title: Text('Saved Suggestions'),
-              ),
-              body: ListView(children: divided),
-            );
-          },
+          builder: (BuildContext context)
+            => FavoritesView(_savedWordPairs, _biggerFont)
         )
     );
   }
 
-  Widget _buildRow(int i, heartClickable) {
-    if (_suggestions.length <= i){
+  Widget _buildRow(int i, WordPair wordPair) {
+    if (_suggestions.length <= i) {
       _suggestions.addAll(generateWordPairs().take(_suggestionIncrement));
     }
     final suggestedWordPair = _suggestions[i];
     final wasSaved = _savedWordPairs.contains(suggestedWordPair);
 
     return ListTile(
-        title: Text(
-            suggestedWordPair.asPascalCase,
-            style: _biggerFont
-        ),
+      title: Text(
+          suggestedWordPair.asPascalCase,
+          style: _biggerFont
+      ),
       trailing: Icon(
         wasSaved ? Icons.favorite : Icons.favorite_border,
         color: wasSaved ? Colors.red : null,
       ),
-      onTap: heartClickable
-          ? () => setState(() =>_toggleSaved(suggestedWordPair))
-          : null,
+      onTap: () => setState(() => _toggleSaved(suggestedWordPair)),
     );
   }
 
@@ -101,23 +118,22 @@ class RandomWordsState extends State<RandomWords>{
 
 
 
-class InfiniteListView extends StatelessWidget {
-  final Widget Function(int i) _itemBuilder;
+class WordPairListView extends StatelessWidget {
+  final List<WordPair> _wordPairs;
+  final Widget Function(int i, WordPair wordPair) _itemBuilder;
 
-  InfiniteListView(this._itemBuilder);
+  WordPairListView(this._wordPairs, this._itemBuilder);
 
   @override
   Widget build(BuildContext context) {
-    return _buildList(_itemBuilder);
-  }
-
-  static Widget _buildList(Widget Function(int i) itemBuilder) {
     return ListView.builder (
         padding: const EdgeInsets.all(16),
         itemBuilder: (context, i) {
           if (i.isOdd) return Divider();
           final index = i ~/ 2;
-          return itemBuilder(index);
+          final wordPair = _wordPairs[index];
+
+          return _itemBuilder(index, wordPair);
         });
   }
 }
