@@ -36,7 +36,7 @@ class RandomWordsState extends State<RandomWords>{
           IconButton(icon: Icon(Icons.list), onPressed: _onClickSaved)
         ],
       ),
-      body: _buildList((i) => _buildRow(i, true)),
+      body: InfiniteListView((i) => _buildRow(i, true)),
     );
   }
 
@@ -99,12 +99,12 @@ class RandomWordsState extends State<RandomWords>{
   }
 }
 
-class InifiniteListView extends StatelessWidget {
-  Widget Function(int i) _itemBuilder;
 
-  InfiniteListView(Widget Function(int i) itemBuilder) {
-    _itemBuilder = itemBuilder;
-  }
+
+class InfiniteListView extends StatelessWidget {
+  final Widget Function(int i) _itemBuilder;
+
+  InfiniteListView(this._itemBuilder);
 
   @override
   Widget build(BuildContext context) {
