@@ -29,18 +29,18 @@ class FavoritesView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final wordsList = _wordPairs.toList();
     return Scaffold(
         appBar: AppBar(
           title: Text('Saved Suggestions'),
         ),
-        body: InfiniteListView((i) => wordsList[i], (i, wordPair) =>
-            ListTile(
-              title: Text(
-                  wordPair.asPascalCase,
-                  style: _font
-              )
-            ))
+        body: ListView(children: _wordPairs.map((wordPair) =>
+          ListTile(
+            title: Text(
+              wordPair.asPascalCase,
+              style: _font
+            )
+        )).toList()
+      )
     );
   }
 
