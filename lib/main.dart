@@ -17,7 +17,6 @@ class MyApp extends StatelessWidget {
 }
 
 class RandomWords extends StatefulWidget {
-
   @override
   RandomWordsState createState() => RandomWordsState();
 }
@@ -30,28 +29,16 @@ class FavoritesView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final Iterable<ListTile> tiles = _wordPairs.map(
-            (WordPair pair)  => ListTile(
-          title: Text(
-            pair.asPascalCase,
-            style: _font,
-          ),
-        ));
-    final List<Widget> divided = ListTile
-        .divideTiles(
-      context: context,
-      tiles: tiles,
-    ).toList();
-
+    final wordsList = _wordPairs.toList();
     return Scaffold(
         appBar: AppBar(
           title: Text('Saved Suggestions'),
         ),
-        body: WordPairListView(_wordPairs.iterator.List)(, (i, wordPair) =>
+        body: InfiniteListView((i) => wordsList[i], (i, wordPair) =>
             ListTile(
               title: Text(
                   wordPair.asPascalCase,
-                  style: font
+                  style: _font
               )
             ))
     );
@@ -74,7 +61,7 @@ class RandomWordsState extends State<RandomWords>{
           IconButton(icon: Icon(Icons.list), onPressed: _onClickSaved)
         ],
       ),
-      body: WordPairListView(_suggestions, _buildRow),
+      body: InfiniteListView<WordPair>((i) => WordPair.random(), _buildRow),
     );
   }
 
@@ -96,6 +83,7 @@ class RandomWordsState extends State<RandomWords>{
     final wasSaved = _savedWordPairs.contains(suggestedWordPair);
 
     return ListTile(
+
       title: Text(
           suggestedWordPair.asPascalCase,
           style: _biggerFont
@@ -116,13 +104,12 @@ class RandomWordsState extends State<RandomWords>{
   }
 }
 
+class InfiniteListView<T> extends StatelessWidget {
+  final T Function(int i) _itemGenerator;
+  final Widget Function(int i, T item) _itemBuilder;
+  final List<T> _items = List<T>();
 
-
-class WordPairListView extends StatelessWidget {
-  final List<WordPair> _wordPairs;
-  final Widget Function(int i, WordPair wordPair) _itemBuilder;
-
-  WordPairListView(this._wordPairs, this._itemBuilder);
+  InfiniteListView(this._itemGenerator, this._itemBuilder);
 
   @override
   Widget build(BuildContext context) {
@@ -131,9 +118,11 @@ class WordPairListView extends StatelessWidget {
         itemBuilder: (context, i) {
           if (i.isOdd) return Divider();
           final index = i ~/ 2;
-          final wordPair = _wordPairs[index];
+          if (index <= _items.length)
+            _items.addAll(Iterable.generate(10, (genIdx) => _itemGenerator(index + genIdx)));
+          final item = _items[index];
 
-          return _itemBuilder(index, wordPair);
+          return _itemBuilder(index, item);
         });
   }
 }
